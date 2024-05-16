@@ -1,5 +1,4 @@
 using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 class Program
 {
@@ -10,7 +9,8 @@ class Program
             new int[] { 1, 5, 9, 10, 5 },
             new int[] { 1, 2, 3 },
             new int[] { 0, 1, 1, 1, 1, 1, 1, 1, 1, 2 },
-            new int[] { 0, 1, 1, 1, 2, 1, 1, 1, 1, 1 }
+            new int[] { 0, 1, 1, 1, 2, 1, 1, 1, 1, 1 },
+            new int[] { 0, 10,0 ,8, 3, 10, 7, 0, 9, 3 }
         };
 
         foreach (int[] chips in setsOfChips)
@@ -40,6 +40,7 @@ class Program
             bool flag_ = true;
             foreach (int minIndex in minIndexes)
             {
+                Console.WriteLine("Current state of affairs: " + string.Join(", ", chips));
                 // Проверяем условия перемещения фишек
                 bool shouldMoveRight = chips[neighbour(chips.Length, minIndex + 1)] + chips[neighbour(chips.Length, minIndex + 2)] > averageChips * 2;
                 bool shouldMoveLeft = chips[neighbour(chips.Length, minIndex - 1)] + chips[neighbour(chips.Length, minIndex - 2)] > averageChips * 2;
@@ -47,58 +48,60 @@ class Program
                 bool checkright = chips[neighbour(chips.Length, minIndex + 1)] > chips[neighbour(chips.Length, minIndex + 2)];
                 bool rightIsGreater = chips[neighbour(chips.Length, minIndex + 1)] >= chips[neighbour(chips.Length, minIndex - 1)];
                 // Перемещаем
-                if (minIndexes.Count() > 1)
+                //if ((minIndexes.Count() > 1) || (minIndex == minIndexes[minIndexes.Count - 1]))
+                if (shouldMoveLeft && checkleft)
                 {
-                    if (shouldMoveRight && checkright)
-                    {
-                        chips[neighbour(chips.Length, minIndex + 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                        break;
-                        
-                    }
-                    else if (shouldMoveLeft && checkleft)
-                    {
-                        chips[neighbour(chips.Length, minIndex - 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                        break;
-                    }
+                    chips[neighbour(chips.Length, minIndex - 1)]--;
+                    chips[minIndex]++;
+                    moves++;
+                    flag_ = false;
+                    continue;
                 }
-                if (minIndex == minIndexes[minIndexes.Count-1] || minIndexes.Count() == 1)
+                if (shouldMoveRight && checkright)
                 {
-                    if (shouldMoveRight && shouldMoveLeft && rightIsGreater)
-                    {
-                        chips[neighbour(chips.Length, minIndex + 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    }
-                    else if (shouldMoveRight && shouldMoveLeft && !rightIsGreater)
-                    {
-                        chips[neighbour(chips.Length, minIndex - 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    }
-                    else if (shouldMoveRight && !shouldMoveLeft)
-                    {
-                        chips[neighbour(chips.Length, minIndex + 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    }
-                    else if (!shouldMoveRight && shouldMoveLeft)
-                    {
-                        chips[neighbour(chips.Length, minIndex - 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    }
+                    chips[neighbour(chips.Length, minIndex + 1)]--;
+                    chips[minIndex]++;
+                    moves++;
+                    flag_ = false;
+                    continue;
                 }
                 
+                if (shouldMoveRight && !shouldMoveLeft)
+                {
+                        chips[neighbour(chips.Length, minIndex + 1)]--;
+                        chips[minIndex]++;
+                        moves++;
+                        flag_ = false;
+                    continue;
+                }
+
+                if (!shouldMoveRight && shouldMoveLeft)
+                {
+                        chips[neighbour(chips.Length, minIndex - 1)]--;
+                        chips[minIndex]++;
+                        moves++;
+                        flag_ = false;
+                    continue;
+                }
+
+                if (shouldMoveRight && shouldMoveLeft && rightIsGreater)
+                {
+                    chips[neighbour(chips.Length, minIndex + 1)]--;
+                    chips[minIndex]++;
+                    moves++;
+                    flag_ = false;
+                    continue;
+                }
+
+                if (shouldMoveRight && shouldMoveLeft && !rightIsGreater)
+                {
+                    chips[neighbour(chips.Length, minIndex - 1)]--;
+                    chips[minIndex]++;
+                    moves++;
+                    flag_ = false;
+                    continue;
+                }
+
             }
             if (flag_)
             {
@@ -158,7 +161,7 @@ class Program
                     moves++;
             }
             // Вывод текущего состояния массива
-            Console.WriteLine("Current state of affairs: " + string.Join(", ", chips));
+            //Console.WriteLine("Current state of affairs: " + string.Join(", ", chips));
             };
 
         return moves;
