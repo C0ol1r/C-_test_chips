@@ -15,8 +15,12 @@ class MainClass
         
         foreach (int[] chips in setsOfChips)
         {
-
-            Console.WriteLine("Direction:"+MinMovesToEqualize(chips));
+            foreach(int i in chips)
+            {
+                Console.Write(i);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Fewest number of moves:" + MinMovesToEqualize(chips));
         }
     }
 
@@ -30,22 +34,22 @@ class MainClass
 
         while (!CheckAllEqual(chips))
         {
-            foreach (int i in chips)
-            {
-                Console.Write(i);
-            }
-            Console.WriteLine();
+            //foreach (int i in chips)
+            //{
+              //  Console.Write(i);
+            //}
+            //Console.WriteLine();
             indices_small = FindIndicesWithLessThanAverage(chips);
             indices_up = FindIndicesWithUpThanAverage(chips);
-            way = findthemostwantedmove(indices_small, indices_up, chips);
-            move(way,chips);
+            way = FindTheMostWantedMove(indices_small, indices_up, chips);
+            Move(way,chips);
             moves++;
         }
 
         return moves;
     }
 
-    static List<int> findthemostwantedmove(List<int> indices_small, List<int> indices_up, int[] chips)
+    static List<int> FindTheMostWantedMove(List<int> indices_small, List<int> indices_up, int[] chips)
     {
         List<List<int>> listOfLists = new List<List<int>>();
         foreach (int minIndex in indices_small)
@@ -158,7 +162,7 @@ class MainClass
             return [direction,wrapAroundDistance,maxIndex,minIndex];
         }
     }
-    static int move(List<int> way, int[] chips)
+    static int Move(List<int> way, int[] chips)
     {
         chips[Neighbour(chips.Length, way[1] + way[0])]++;
         chips[Neighbour(chips.Length,way[1])]--;
