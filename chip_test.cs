@@ -1,8 +1,8 @@
 using System;
-
-class Program
+using System.Linq;
+class MainClass
 {
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         int[][] setsOfChips = new int[][] {
             new int[] { 6, 2, 4, 10, 3 },
@@ -12,162 +12,76 @@ class Program
             new int[] { 0, 1, 1, 1, 2, 1, 1, 1, 1, 1 },
             new int[] { 0, 10,0 ,8, 3, 10, 7, 0, 9, 3 }
         };
-
+        
         foreach (int[] chips in setsOfChips)
         {
-            int moves = BalanceChips(chips);
-            Console.WriteLine("Minimum number of movements: " + moves);
-            Console.WriteLine("Chips after balancing: " + string.Join(", ", chips));
+
+            Console.WriteLine("Direction:"+MinMovesToEqualize(chips));
         }
     }
 
-    static int BalanceChips(int[] chips)
+    // Функция для нахождения минимального количества перемещений фишек
+    static int MinMovesToEqualize(int[] chips)
     {
-        int totalChips = 0;
-        foreach (int chip in chips)
-        {
-            totalChips += chip;
-        }
-
-        int averageChips = totalChips / chips.Length; // среднее количество фишек на место
+        List<int> indices_small = new List<int>();
+        List<int> indices_up = new List<int>();
+        List<int> way = new List<int>();
         int moves = 0;
 
-        // Пока не уравняли ставки
         while (!CheckAllEqual(chips))
         {
-            // Индекс позиции с минимальным количеством фишек
-            List<int> minIndexes = FindMinIndex(chips);
-            bool flag_ = true;
-            foreach (int minIndex in minIndexes)
+            foreach (int i in chips)
             {
-                Console.WriteLine("Current state of affairs: " + string.Join(", ", chips));
-                // Проверяем условия перемещения фишек
-                bool shouldMoveRight = chips[neighbour(chips.Length, minIndex + 1)] + chips[neighbour(chips.Length, minIndex + 2)] > averageChips * 2;
-                bool shouldMoveLeft = chips[neighbour(chips.Length, minIndex - 1)] + chips[neighbour(chips.Length, minIndex - 2)] > averageChips * 2;
-                bool checkleft = chips[neighbour(chips.Length, minIndex - 1)] > chips[neighbour(chips.Length, minIndex - 2)];
-                bool checkright = chips[neighbour(chips.Length, minIndex + 1)] > chips[neighbour(chips.Length, minIndex + 2)];
-                bool rightIsGreater = chips[neighbour(chips.Length, minIndex + 1)] >= chips[neighbour(chips.Length, minIndex - 1)];
-                // Перемещаем
-                //if ((minIndexes.Count() > 1) || (minIndex == minIndexes[minIndexes.Count - 1]))
-                if (shouldMoveLeft && checkleft)
-                {
-                    chips[neighbour(chips.Length, minIndex - 1)]--;
-                    chips[minIndex]++;
-                    moves++;
-                    flag_ = false;
-                    continue;
-                }
-                if (shouldMoveRight && checkright)
-                {
-                    chips[neighbour(chips.Length, minIndex + 1)]--;
-                    chips[minIndex]++;
-                    moves++;
-                    flag_ = false;
-                    continue;
-                }
-                
-                if (shouldMoveRight && !shouldMoveLeft)
-                {
-                        chips[neighbour(chips.Length, minIndex + 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    continue;
-                }
-
-                if (!shouldMoveRight && shouldMoveLeft)
-                {
-                        chips[neighbour(chips.Length, minIndex - 1)]--;
-                        chips[minIndex]++;
-                        moves++;
-                        flag_ = false;
-                    continue;
-                }
-
-                if (shouldMoveRight && shouldMoveLeft && rightIsGreater)
-                {
-                    chips[neighbour(chips.Length, minIndex + 1)]--;
-                    chips[minIndex]++;
-                    moves++;
-                    flag_ = false;
-                    continue;
-                }
-
-                if (shouldMoveRight && shouldMoveLeft && !rightIsGreater)
-                {
-                    chips[neighbour(chips.Length, minIndex - 1)]--;
-                    chips[minIndex]++;
-                    moves++;
-                    flag_ = false;
-                    continue;
-                }
-
+                Console.Write(i);
             }
-            if (flag_)
-            {
-                List<int> maxIndexes = FindMaxIndex(chips);
-                
-                int minimal_distance = int.MaxValue;
-                int side = -1;
-                int index_of_elem = -1;
-                foreach (int maxIndex in maxIndexes)
-                {
-                    foreach (int minIndex in minIndexes)
-                    {
-                        int distance;
-                        int direction;
-
-                        // Вычисляем расстояние между индексами, учитывая круговую структуру массива
-                        if (minIndex > maxIndex)
-                        {
-                            if (minIndex - maxIndex< chips.Length - minIndex + maxIndex)
-                            {
-                                distance = minIndex - maxIndex;
-                                direction = -1;
-                            }
-                            else
-                            {
-                                distance = chips.Length - minIndex + maxIndex;
-                                direction = 1;
-                            }
-                        }
-                        else
-                        {
-                            if (maxIndex - minIndex < chips.Length - maxIndex + minIndex)
-                            {
-                                distance = maxIndex - minIndex;
-                                direction = -1;
-                            }
-                            else
-                            {
-                                distance = chips.Length - maxIndex + minIndex;
-                                direction = 1;
-                            }
-
-                        }
-
-                        // Обновляем минимальное расстояние, если найдено меньшее
-                        if (distance < minimal_distance)
-                        {
-                            minimal_distance = distance;
-                            side = direction;
-                            index_of_elem = maxIndex;
-                        }
-                    }
-                }
-
-                chips[neighbour(chips.Length, index_of_elem)]--;
-                    chips[neighbour(chips.Length, index_of_elem + side)]++;
-                    moves++;
-            }
-            // Вывод текущего состояния массива
-            //Console.WriteLine("Current state of affairs: " + string.Join(", ", chips));
-            };
+            Console.WriteLine();
+            indices_small = FindIndicesWithLessThanAverage(chips);
+            indices_up = FindIndicesWithUpThanAverage(chips);
+            way = findthemostwantedmove(indices_small, indices_up, chips);
+            move(way,chips);
+            moves++;
+        }
 
         return moves;
     }
 
-    static int neighbour(int L, int index)
+    static List<int> findthemostwantedmove(List<int> indices_small, List<int> indices_up, int[] chips)
+    {
+        List<List<int>> listOfLists = new List<List<int>>();
+        foreach (int minIndex in indices_small)
+        {
+            foreach (int maxIndex in indices_up)
+            {
+                listOfLists.Add(CalculateDistance(minIndex, maxIndex, chips.Length));
+            }
+        }
+        int max = int.MinValue;
+        int maxindex = 0;
+        for (int i=0; i< listOfLists.Count;i++)
+        {
+            if (listOfLists[i][1] > max)
+            {
+                max = listOfLists[i][1];
+                maxindex = i;
+            }
+
+        }
+
+        int bias = maxindex / indices_up.Count;
+        int min = int.MaxValue;
+        int minIndex_ = 0;
+        for (int i=0+bias * indices_up.Count;i< bias * indices_up.Count+1;i++)
+        {
+            if (listOfLists[i][1] < min)
+            {
+                min = listOfLists[i][1];
+                minIndex_ = i;
+            }
+        }
+
+        return [listOfLists[minIndex_][0], listOfLists[minIndex_][2]];
+    }
+    static int Neighbour(int L, int index)
     {
         if (index >= L)
         {
@@ -180,7 +94,6 @@ class Program
         else return index;
 
     }
-
     static bool CheckAllEqual(int[] array)
     {
         for (int i = 1; i < array.Length; i++)
@@ -192,43 +105,63 @@ class Program
         }
         return true;
     }
-
-    static List<int> FindMinIndex(int[] chips)
-        {
-            //int minIndex = 0;
-            int minValue = chips[0];
-            List<int> minIndex = new List<int>();
-            for (int i = 0; i < chips.Length; i++)
-            {
-                if (chips[i] < minValue)
-                {
-                    minIndex.Clear();
-                    minValue = chips[i];
-                }
-                if (chips[i] == minValue)
-                {
-                    minIndex.Add(i);
-                }
-            }
-            return minIndex;
-        }
-    static List<int> FindMaxIndex(int[] chips)
+    static List<int> FindIndicesWithLessThanAverage(int[] chips)
     {
+        int n = chips.Length;
+        int totalChips = chips.Sum();
+        int average = totalChips / n;
 
-        int maxValue = chips[0];
-        List<int> maxIndex = new List<int>();
-        for (int i = 0; i < chips.Length; i++)
+        List<int> indices = new List<int>();
+
+        for (int i = 0; i < n; i++)
         {
-            if (chips[i] > maxValue)
+            if (chips[i] < average)
             {
-                maxIndex.Clear();
-                maxValue = chips[i];
-            }
-            if (chips[i] == maxValue)
-            {
-                maxIndex.Add(i);
+                indices.Add(i);
             }
         }
-        return maxIndex;
+
+        return indices;
+    }
+    static List<int> FindIndicesWithUpThanAverage(int[] chips)
+    {
+        int n = chips.Length;
+        int totalChips = chips.Sum();
+        int average = totalChips / n;
+
+        List<int> indices = new List<int>();
+
+        for (int i = 0; i < n; i++)
+        {
+            if (chips[i] > average)
+            {
+                indices.Add(i);
+            }
+        }
+
+        return indices;
+    }
+    static List<int> CalculateDistance(int minIndex, int maxIndex, int length)
+    {
+        int direction = 0;
+        int directDistance = Math.Abs(maxIndex - minIndex);
+        int wrapAroundDistance = length - directDistance;
+
+        if (directDistance < wrapAroundDistance)
+        {
+            direction = (maxIndex > minIndex) ? -1 : 1;
+            return [direction,directDistance, maxIndex, minIndex];
+        }
+        else
+        {
+            direction = (maxIndex > minIndex) ? 1 : -1;
+            return [direction,wrapAroundDistance,maxIndex,minIndex];
+        }
+    }
+    static int move(List<int> way, int[] chips)
+    {
+        chips[Neighbour(chips.Length, way[1] + way[0])]++;
+        chips[Neighbour(chips.Length,way[1])]--;
+        return 0;
     }
 }
